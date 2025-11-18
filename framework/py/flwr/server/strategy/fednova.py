@@ -94,7 +94,7 @@ class FedNova(FedAvg):
                 client,
                 FitIns(
                     fit_ins.parameters,
-                    {**fit_ins.config, "proximal_mu": self.proximal_mu},
+                    {**fit_ins.config, "":1},
                 ),
             )
             for client, fit_ins in client_config_pairs
