@@ -18,8 +18,9 @@
 
 .. _recorddict_link: ref-api/flwr.app.RecordDict.html
 
-Aggregate evaluation results
-============================
+##############################
+ Aggregate evaluation results
+##############################
 
 Flower strategies (e.g. |fedavg_link|_ and all that derive from it) automatically
 aggregate the metrics in the |metricrecord_link|_ in the ``Messages`` replied by the
@@ -34,7 +35,7 @@ aggregation but also the callback function used to aggregate metrics.
     By default, Flower strategies use as ``weighted_by_key="num-examples"``. If you are
     interested, see the full implementation of how the default weighted aggregation
     callback works `here
-    <https://github.com/adap/flower/blob/b174b2e02bb34cae9ba9f2a124c610a844cee870/framework/py/flwr/serverapp/strategy/strategy_utils.py#L109>`_.
+    <https://github.com/flwrlabs/flower/blob/b174b2e02bb34cae9ba9f2a124c610a844cee870/framework/py/flwr/serverapp/strategy/strategy_utils.py#L109>`_.
 
 .. code-block:: python
 
@@ -58,8 +59,9 @@ received in the reply of an evaluation round.
     averaging using the value assigned to the ``weighted_by_key`` exactly as the
     ``evaluate_metrics_aggr_fn`` presented earlier.
 
-Using a custom metrics aggregation function
--------------------------------------------
+*********************************************
+ Using a custom metrics aggregation function
+*********************************************
 
 The ``evaluate_metrics_aggr_fn`` can be customized to support any evaluation results
 aggregation logic you need. Its definition is:

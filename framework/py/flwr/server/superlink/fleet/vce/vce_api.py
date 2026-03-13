@@ -20,11 +20,11 @@ import secrets
 import threading
 import time
 import traceback
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from logging import DEBUG, ERROR, INFO, WARN
 from pathlib import Path
 from queue import Empty, Queue
-from typing import Callable, Optional
 from uuid import uuid4
 
 from flwr.app.error import Error
@@ -44,6 +44,7 @@ from flwr.common.logger import log
 from flwr.common.typing import Run
 from flwr.server.superlink.linkstate import LinkState, LinkStateFactory
 from flwr.supercore.constant import FLWR_IN_MEMORY_DB_NAME
+from flwr.supercore.object_store import ObjectStoreFactory
 from flwr.superlink.federation import NoOpFederationManager
 
 from .backend import Backend, error_messages_backends, supported_backends
@@ -78,7 +79,7 @@ def _register_nodes(
 def _register_node_info_stores(
     nodes_mapping: NodeToPartitionMapping,
     run: Run,
-    app_dir: Optional[str] = None,
+    app_dir: str | None = None,
 ) -> dict[int, DeprecatedRunInfoStore]:
     """Create DeprecatedRunInfoStore objects and register the context for the run."""
     node_info_store: dict[int, DeprecatedRunInfoStore] = {}
@@ -273,12 +274,11 @@ def start_vce(
     is_app: bool,
     f_stop: threading.Event,
     run: Run,
-    flwr_dir: Optional[str] = None,
-    client_app: Optional[ClientApp] = None,
-    client_app_attr: Optional[str] = None,
-    num_supernodes: Optional[int] = None,
-    state_factory: Optional[LinkStateFactory] = None,
-    existing_nodes_mapping: Optional[NodeToPartitionMapping] = None,
+    client_app: ClientApp | None = None,
+    client_app_attr: str | None = None,
+    num_supernodes: int | None = None,
+    state_factory: LinkStateFactory | None = None,
+    existing_nodes_mapping: NodeToPartitionMapping | None = None,
 ) -> None:
     """Start Fleet API with the Simulation Engine."""
     nodes_mapping = {}
@@ -317,7 +317,7 @@ def start_vce(
         log(INFO, "A StateFactory was not supplied to the SimulationEngine.")
         # Create an empty in-memory state factory
         state_factory = LinkStateFactory(
-            FLWR_IN_MEMORY_DB_NAME, NoOpFederationManager()
+            FLWR_IN_MEMORY_DB_NAME, NoOpFederationManager(), ObjectStoreFactory()
         )
         log(INFO, "Created new %s.", state_factory.__class__.__name__)
 
@@ -364,7 +364,6 @@ def start_vce(
             return get_load_client_app_fn(
                 default_app_ref=client_app_attr,
                 app_path=app_dir,
-                flwr_dir=flwr_dir,
                 multi_app=False,
             )(run.fab_id, run.fab_version, run.fab_hash)
 

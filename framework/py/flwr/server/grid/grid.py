@@ -17,7 +17,6 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Optional
 
 from flwr.common import Message, RecordDict
 from flwr.common.typing import Run
@@ -27,17 +26,13 @@ class Grid(ABC):
     """Abstract base class Grid to send/receive messages."""
 
     @abstractmethod
-    def set_run(self, run_id: int) -> None:
-        """Request a run to the SuperLink with a given ``run_id``.
-
-        If a ``Run`` with the specified ``run_id`` exists, a local ``Run``
-        object will be created. It enables further functionality
-        in the grid, such as sending ``Message`` objects.
+    def set_run(self, run: Run) -> None:
+        """Set the run this ``Grid`` object operates in.
 
         Parameters
         ----------
-        run_id : int
-            The ``run_id`` of the ``Run`` this ``Grid`` object operates in.
+        run : Run
+            The ``Run`` this ``Grid`` object operates in.
         """
 
     @property
@@ -52,7 +47,7 @@ class Grid(ABC):
         message_type: str,
         dst_node_id: int,
         group_id: str,
-        ttl: Optional[float] = None,
+        ttl: float | None = None,
     ) -> Message:
         """Create a new message with specified parameters.
 
@@ -130,7 +125,7 @@ class Grid(ABC):
         self,
         messages: Iterable[Message],
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> Iterable[Message]:
         """Push messages to specified node IDs and pull the reply messages.
 

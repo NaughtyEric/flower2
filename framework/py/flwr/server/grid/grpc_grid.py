@@ -18,7 +18,7 @@
 import time
 from collections.abc import Iterable
 from logging import DEBUG, ERROR, WARNING
-from typing import Optional, cast
+from typing import cast
 
 import grpc
 
@@ -28,30 +28,12 @@ from flwr.common.constant import (
     SERVERAPPIO_API_DEFAULT_CLIENT_ADDRESS,
     SUPERLINK_NODE_ID,
     ErrorCode,
-    MessageType,
 )
 from flwr.common.grpc import create_channel, on_channel_state_change
-from flwr.common.inflatable import (
-    InflatableObject,
-    get_all_nested_objects,
-    get_object_tree,
-    iterate_object_tree,
-    no_object_id_recompute,
-)
-from flwr.common.inflatable_protobuf_utils import (
-    make_pull_object_fn_protobuf,
-    make_push_object_fn_protobuf,
-)
-from flwr.common.inflatable_utils import (
-    ObjectUnavailableError,
-    inflate_object_from_contents,
-    pull_objects,
-    push_objects,
-)
 from flwr.common.logger import log, warn_deprecated_feature
 from flwr.common.message import make_message, remove_content_from_message
-from flwr.common.retry_invoker import _make_simple_grpc_retry_invoker, _wrap_stub
-from flwr.common.serde import message_to_proto, run_from_proto
+from flwr.common.retry_invoker import make_simple_grpc_retry_invoker, wrap_stub
+from flwr.common.serde import message_to_proto
 from flwr.common.typing import Run
 from flwr.proto.appio_pb2 import (  # pylint: disable=E0611
     PullAppMessagesRequest,
@@ -63,12 +45,29 @@ from flwr.proto.message_pb2 import (  # pylint: disable=E0611
     ConfirmMessageReceivedRequest,
 )
 from flwr.proto.node_pb2 import Node  # pylint: disable=E0611
-from flwr.proto.run_pb2 import GetRunRequest, GetRunResponse  # pylint: disable=E0611
 from flwr.proto.serverappio_pb2 import (  # pylint: disable=E0611
     GetNodesRequest,
     GetNodesResponse,
 )
 from flwr.proto.serverappio_pb2_grpc import ServerAppIoStub  # pylint: disable=E0611
+from flwr.supercore.constant import SYSTEM_MESSAGE_TYPE
+from flwr.supercore.inflatable.inflatable_object import (
+    InflatableObject,
+    get_all_nested_objects,
+    get_object_tree,
+    iterate_object_tree,
+    no_object_id_recompute,
+)
+from flwr.supercore.inflatable.inflatable_protobuf_utils import (
+    make_pull_object_fn_protobuf,
+    make_push_object_fn_protobuf,
+)
+from flwr.supercore.inflatable.inflatable_utils import (
+    ObjectUnavailableError,
+    inflate_object_from_contents,
+    pull_objects,
+    push_objects,
+)
 
 from .grid import Grid
 
@@ -119,15 +118,15 @@ class GrpcGrid(Grid):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         serverappio_service_address: str = SERVERAPPIO_API_DEFAULT_CLIENT_ADDRESS,
-        root_certificates: Optional[bytes] = None,
+        root_certificates: bytes | None = None,
     ) -> None:
         self._addr = serverappio_service_address
         self._cert = root_certificates
-        self._run: Optional[Run] = None
-        self._grpc_stub: Optional[ServerAppIoStub] = None
-        self._channel: Optional[grpc.Channel] = None
+        self._run: Run | None = None
+        self._grpc_stub: ServerAppIoStub | None = None
+        self._channel: grpc.Channel | None = None
         self.node = Node(node_id=SUPERLINK_NODE_ID)
-        self._retry_invoker = _make_simple_grpc_retry_invoker()
+        self._retry_invoker = make_simple_grpc_retry_invoker()
         super().__init__()
 
     @property
@@ -150,7 +149,7 @@ class GrpcGrid(Grid):
         )
         self._channel.subscribe(on_channel_state_change)
         self._grpc_stub = ServerAppIoStub(self._channel)
-        _wrap_stub(self._grpc_stub, self._retry_invoker)
+        wrap_stub(self._grpc_stub, self._retry_invoker)
         log(DEBUG, "[flwr-serverapp] Connected to %s", self._addr)
 
     def _disconnect(self) -> None:
@@ -164,14 +163,12 @@ class GrpcGrid(Grid):
         channel.close()
         log(DEBUG, "[flwr-serverapp] Disconnected")
 
-    def set_run(self, run_id: int) -> None:
+    def set_run(self, run: Run) -> None:
         """Set the run."""
-        # Get the run info
-        req = GetRunRequest(run_id=run_id)
-        res: GetRunResponse = self._stub.GetRun(req)
-        if not res.HasField("run"):
-            raise RuntimeError(f"Cannot find the run with ID: {run_id}")
-        self._run = run_from_proto(res.run)
+        if not isinstance(run, Run):
+            run_type = type(run).__name__
+            raise TypeError(f"`run` must be an instance of Run, got {run_type}")
+        self._run = run
 
     @property
     def run(self) -> Run:
@@ -200,7 +197,7 @@ class GrpcGrid(Grid):
         message_type: str,
         dst_node_id: int,
         group_id: str,
-        ttl: Optional[float] = None,
+        ttl: float | None = None,
     ) -> Message:
         """Create a new message with specified parameters.
 
@@ -313,7 +310,9 @@ class GrpcGrid(Grid):
             )
             # Pull Messages from store
             inflated_msgs: list[Message] = []
-            for msg_proto, msg_tree in zip(res.messages_list, res.message_object_trees):
+            for msg_proto, msg_tree in zip(
+                res.messages_list, res.message_object_trees, strict=True
+            ):
                 msg_id = msg_proto.metadata.message_id
                 try:
                     all_object_contents = pull_objects(
@@ -339,7 +338,7 @@ class GrpcGrid(Grid):
                                 message_id="",
                                 src_node_id=self.node.node_id,
                                 dst_node_id=self.node.node_id,
-                                message_type=MessageType.SYSTEM,
+                                message_type=SYSTEM_MESSAGE_TYPE,
                                 group_id="",
                                 ttl=0,
                                 reply_to_message_id=msg_proto.metadata.reply_to_message_id,
@@ -376,7 +375,7 @@ class GrpcGrid(Grid):
         self,
         messages: Iterable[Message],
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> Iterable[Message]:
         """Push messages to specified node IDs and pull the reply messages.
 

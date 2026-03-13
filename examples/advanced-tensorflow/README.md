@@ -7,9 +7,9 @@ framework: [keras, tensorflow]
 # Federated Learning with TensorFlow/Keras and Flower (Advanced Example)
 
 > [!TIP]
-> This example shows intermediate and advanced functionality of Flower. If you are new to Flower, it is recommended to start from the [quickstart-tensorflow](https://github.com/adap/flower/tree/main/examples/quickstart-tensorflow) example or the [quickstart TensorFlow tutorial](https://flower.ai/docs/framework/tutorial-quickstart-tensorflow.html).
+> This example shows intermediate and advanced functionality of Flower. If you are new to Flower, it is recommended to start from the [quickstart-tensorflow](https://github.com/flwrlabs/flower/tree/main/examples/quickstart-tensorflow) example or the [quickstart TensorFlow tutorial](https://flower.ai/docs/framework/tutorial-quickstart-tensorflow.html).
 
-This example shows how to extend your `ClientApp` and `ServerApp` capabilities compared to what's shown in the [`quickstart-tensorflow`](https://github.com/adap/flower/tree/main/examples/quickstart-tensorflow) example. In particular, it will show how the `ClientApp`'s state (and object of type [RecordDict](https://flower.ai/docs/framework/ref-api/flwr.common.RecordDict.html)) can be used to enable stateful clients, facilitating the design of personalized federated learning strategies, among others. The `ServerApp` in this example makes use of a custom strategy derived from the built-in [FedAvg](https://flower.ai/docs/framework/ref-api/flwr.serverapp.strategy.FedAvg.html). In addition, it will also showcase how to:
+This example shows how to extend your `ClientApp` and `ServerApp` capabilities compared to what's shown in the [`quickstart-tensorflow`](https://github.com/flwrlabs/flower/tree/main/examples/quickstart-tensorflow) example. In particular, it will show how the `ClientApp`'s state (and object of type [RecordDict](https://flower.ai/docs/framework/ref-api/flwr.common.RecordDict.html)) can be used to enable stateful clients, facilitating the design of personalized federated learning strategies, among others. The `ServerApp` in this example makes use of a custom strategy derived from the built-in [FedAvg](https://flower.ai/docs/framework/ref-api/flwr.serverapp.strategy.FedAvg.html). In addition, it will also showcase how to:
 
 1. Save model checkpoints
 2. Save the metrics available at the strategy (e.g. accuracies, losses)
@@ -98,7 +98,7 @@ The `results.json` would look along the lines of:
 With default parameters, 25% of the total 50 nodes (see `num-supernodes` in `pyproject.toml`) will be sampled for `train` and 50% for an `evaluate` round. By default, `ClientApp` objects will run on CPU.
 
 > [!TIP]
-> To run your `ClientApps` on GPU or to adjust the degree or parallelism of your simulation, edit the `[tool.flwr.federations.local-simulation]` section in the `pyproject.toml`. Check the [Simulation Engine documentation](https://flower.ai/docs/framework/how-to-run-simulations.html) to learn more about Flower simulations and how to optimize them.
+> To run your `ClientApps` on GPU or to adjust the degree or parallelism of your simulation, edit the Flower Config. Check the [Simulation Engine documentation](https://flower.ai/docs/framework/how-to-run-simulations.html#defining-clientapp-resources) to learn more about Flower simulations and how to optimize them.
 
 ```bash
 flwr run .
@@ -106,13 +106,6 @@ flwr run .
 
 > [!WARNING]
 > By default TensorFlow processes that use GPU will try to pre-allocate the entire available VRAM. This is undesirable for simulations where we want the GPU to be shared among several `ClientApp` instances. Enable the [GPU memory growth](https://www.tensorflow.org/guide/gpu#limiting_gpu_memory_growth) by setting the `TF_FORCE_GPU_ALLOW_GROWTH` environment variable to ensure processes only make use of the VRAM they need.
-
-You can run the app using another federation (see `pyproject.toml`). For example, if you have a GPU available, select the `local-sim-gpu` federation:
-
-```bash
-export TF_FORCE_GPU_ALLOW_GROWTH="true"
-flwr run . local-sim-gpu
-```
 
 You can also override some of the settings for your `ClientApp` and `ServerApp` defined in `pyproject.toml`. For example:
 

@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -28,13 +28,13 @@ jobs:
 
   publish-typescript:
     needs: check-version
-    if: ${{ github.repository == 'adap/flower' }}
+    if: ${{ github.repository == 'flwrlabs/flower' }}
     name: Publish Flower Intelligence TypeScript SDK to NPM
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -61,7 +61,7 @@ jobs:
 
   publish-kotlin:
     needs: check-version
-    if: ${{ github.repository == 'adap/flower' }}
+    if: ${{ github.repository == 'flwrlabs/flower' }}
     name: Publish Flower Intelligence Kotlin SDK to Maven Central
     runs-on: ubuntu-22.04
     timeout-minutes: 10
@@ -74,7 +74,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Java
         uses: actions/setup-java@v4

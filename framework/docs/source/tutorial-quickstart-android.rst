@@ -1,7 +1,8 @@
 .. _quickstart-android:
 
-Quickstart Android
-==================
+####################
+ Quickstart Android
+####################
 
 .. meta::
     :description: Read this Federated Learning quickstart tutorial for creating an Android app using Flower.
@@ -17,4 +18,4 @@ Quickstart Android
 Let's build a federated learning system using TFLite and Flower on Android!
 
 Please refer to the `full code example
-<https://github.com/adap/flower/tree/main/examples/android>`_ to learn more.
+<https://github.com/flwrlabs/flower/tree/main/examples/android>`_ to learn more.

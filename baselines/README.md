@@ -2,7 +2,7 @@
 
 
 > [!NOTE] 
-> We are changing the way we structure the Flower baselines. While we complete the transition to the new format, you can still find the existing baselines in the `flwr_baselines` directory. Currently, you can make use of baselines for [FedAvg](https://github.com/adap/flower/tree/main/baselines/flwr_baselines/flwr_baselines/publications/fedavg_mnist), [FedOpt](https://github.com/adap/flower/tree/main/baselines/flwr_baselines/flwr_baselines/publications/adaptive_federated_optimization), and [LEAF-FEMNIST](https://github.com/adap/flower/tree/main/baselines/flwr_baselines/flwr_baselines/publications/leaf/femnist).
+> We are changing the way we structure the Flower baselines. While we complete the transition to the new format, you can still find the existing baselines in the `flwr_baselines` directory. Currently, you can make use of baselines for [FedAvg](https://github.com/flwrlabs/flower/tree/main/baselines/flwr_baselines/flwr_baselines/publications/fedavg_mnist), [FedOpt](https://github.com/flwrlabs/flower/tree/main/baselines/flwr_baselines/flwr_baselines/publications/adaptive_federated_optimization), and [LEAF-FEMNIST](https://github.com/flwrlabs/flower/tree/main/baselines/flwr_baselines/flwr_baselines/publications/leaf/femnist).
 
 
 ## Structure
@@ -27,7 +27,7 @@ Each baseline is self-contained in its own directory. To run a baseline:
 1. Cloning the flower repository
 
     ```bash
-    git clone https://github.com/adap/flower.git && cd flower
+    git clone https://github.com/flwrlabs/flower.git && cd flower
     ```
 
 2. Navigate inside the directory of the baseline you'd like to run.
@@ -44,17 +44,18 @@ Do you have a new federated learning paper and want to add a new baseline to Flo
 
 The steps to follow are:
 
-1. Create a new Python 3.10 environment and install Flower (`pip install flwr`)
+1. Create a new Python 3.12 environment and install Flower (`pip install flwr`)
 1. Fork the Flower repo and clone it into your machine.
 2. Navigate to the `baselines/` directory, from there and with your environment activated, run:
 
-    ```bash
-    # Choose option "Flower Baseline" when prompted
-    flwr new <baseline-name>
+    ```shell
+    # This will create a Flower App named `baseline`
+    flwr new @flwrlabs/baseline
     ```
-3. Then, go inside your baseline directory and continue with the steps detailed in the `README.md`.
-4. Once your code is ready, check that you have completed all the sections in the `README.md` and that, if a new environment is created, your baseline still runs (i.e. play the role of a person running the baseline you want to contribute).
-5. Create a Pull Request (PR). Then, the process to merge your baseline into the Flower repo will begin!
+3. Rename the app from `baseline` to the name of the algorithm/paper you are implementing (e.g. `FedAwesome`).
+4. Then, go inside your baseline directory and continue with the steps detailed in the `README.md`.
+5. Once your code is ready, check that you have completed all the sections in the `README.md` and that, if a new environment is created, your baseline still runs (i.e. play the role of a person running the baseline you want to contribute).
+6. Create a Pull Request (PR). Then, the process to merge your baseline into the Flower repo will begin!
 
 
 Further resources:
